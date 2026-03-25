@@ -147,6 +147,9 @@ def format_table(results: list[QuantResult], gpu: Optional[GpuInfo]) -> str:
     lines.append(f"{'-'*12} {'-'*6} {'-'*7} {'-'*10} {'-'*8} {'-'*15}")
 
     for r in results:
+        # Skip failed inference (bad tag guesses that don't exist)
+        if r.error and r.error in ("Inference failed", "Model not available"):
+            continue
         note = ""
         if r.error:
             note = r.error
