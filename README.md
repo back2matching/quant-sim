@@ -20,25 +20,48 @@ No existing tool benchmarks speed AND quality across quant levels automatically:
 
 quant-sim does both in one command.
 
-## Example Output
+## Example: Compare All Quant Levels
 
 ```
-GPU: NVIDIA GeForce RTX 4080 (16376 MB VRAM, 3448 MB free)
+$ quant-sim qwen2.5:7b --quick --speed-only
 
 Quant          Size    VRAM      Speed  Quality Note
 ------------ ------ ------- ---------- -------- ---------------
-Q4_K_M         6.1G  10801M     65.4/s      60% * BEST *
-Q4_K_M         4.9G   8714M     76.1/s      40%
-Q4_K_M         8.6G  12602M     45.7/s      60%
+Q3_K_S         3.3G  15004M    128.8/s       --
+Q4_K_M         4.4G   7885M    134.2/s       -- * BEST *
+Q5_K_M         5.1G   8532M    105.8/s       --
+Q6_K           5.8G   9160M     89.0/s       --
+Q8_0           7.5G  10813M     69.7/s       --
 
-Recommendation: Use Q4_K_M (Qwen/Qwen3-8B).
-  60% quality at 65 tok/s, 6.1 GB.
+Recommendation: Use Q4_K_M (qwen2.5:7b-instruct-q4_k_m).
+  134 tok/s, 4.4 GB.
 ```
+
+## Example: Benchmark All Local Models
+
+```
+$ quant-sim --local --quick --speed-only
+
+Quant          Size    VRAM      Speed  Note
+------------ ------ ------- ---------- ---------------
+Q4_K_M         7.5G   7857M    117.9/s * BEST *
+Q4_K_M         4.4G   7888M    112.0/s
+Q5_K_M         5.1G   8532M    101.2/s
+Q4_K_M         4.9G   8619M     98.6/s
+Q6_K           5.8G   9220M     89.1/s
+Q4_K_M         6.1G  10717M     80.4/s
+Q4_K_M         6.1G  10723M     75.9/s
+Q8_0           7.5G  11096M     72.7/s
+Q4_K_M         8.6G  12375M     50.9/s
+Q3_K_M        13.4G  15843M      2.1/s  (CPU offload)
+```
+
+*Real output from RTX 4080 16GB with 11 models installed.*
 
 ## Install
 
 ```bash
-pip install quant-sim
+pip install quant-sim  # coming soon — for now: pip install -e . from source
 ```
 
 Requires: Ollama running locally, NVIDIA GPU.
@@ -46,14 +69,20 @@ Requires: Ollama running locally, NVIDIA GPU.
 ## Usage
 
 ```bash
-# Benchmark a model (auto-discovers quant variants)
+# Benchmark a model (auto-discovers quant variants, pulls if needed)
 quant-sim qwen2.5:7b
 
+# Benchmark ALL locally installed models (no downloads)
+quant-sim --local
+
 # Quick mode (~2 min instead of ~10 min)
-quant-sim llama3.1:8b --quick
+quant-sim qwen2.5:7b --quick
 
 # Speed only (skip quality test)
-quant-sim mistral:7b --speed-only
+quant-sim --local --quick --speed-only
+
+# Don't download anything (only test what's already installed)
+quant-sim qwen2.5:7b --no-pull
 
 # Compare specific tags
 quant-sim test --tags "qwen3:8b,qwen3:14b,qwen3.5:9b"
