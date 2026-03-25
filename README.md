@@ -121,6 +121,20 @@ Built-in 20-question test covering:
 3. Grades quality answers automatically (keyword matching, code syntax checking)
 4. Recommends the best tradeoff: highest quality above 80%, then fastest
 
+## Community Leaderboard
+
+Share your benchmarks. Compare your GPU against others.
+
+```bash
+# Submit results after benchmarking
+quant-sim --local --quick --submit
+
+# View community results
+quant-sim --leaderboard
+```
+
+Results stored as GitHub issues — no backend server needed. Set `GITHUB_TOKEN` env var to submit.
+
 ## Requirements
 
 - Python 3.10+

@@ -22,7 +22,26 @@ def main():
     parser.add_argument("--tags", help="Comma-separated quant tags to test (instead of auto-discovery)")
     parser.add_argument("--no-pull", action="store_true", help="Only test locally available models (don't download)")
     parser.add_argument("--local", action="store_true", help="Benchmark all locally installed models")
+    parser.add_argument("--submit", action="store_true", help="Submit results to community leaderboard (requires GITHUB_TOKEN)")
+    parser.add_argument("--leaderboard", action="store_true", help="View community leaderboard")
     args = parser.parse_args()
+
+    # Leaderboard view
+    if args.leaderboard:
+        from quant_sim.leaderboard import view_leaderboard
+        results = view_leaderboard()
+        if not results:
+            print("No community results yet. Be the first: quant-sim --local --submit")
+            return
+        print(f"\nCommunity Leaderboard ({len(results)} submissions)\n")
+        for sub in results:
+            gpu = sub.get("gpu", {})
+            print(f"  {gpu.get('name', '?')} ({gpu.get('vram_mb', 0)} MB)")
+            for r in sub.get("results", [])[:3]:
+                rec = " *" if r.get("recommended") else ""
+                print(f"    {r['quant']:<10} {r['model']:<30} {r['speed_tok_s']:>6.1f} tok/s{rec}")
+            print()
+        return
 
     # GPU info
     if args.gpu:
@@ -125,6 +144,17 @@ def main():
         with open(args.json, "w") as f:
             json.dump([asdict(r) for r in results], f, indent=2)
         print(f"\nResults saved to {args.json}")
+
+    # Submit to leaderboard
+    if args.submit:
+        from quant_sim.leaderboard import submit_results
+        print("\nSubmitting to community leaderboard...", end=" ")
+        gpu_dict = {"name": gpu.name, "vram_total_mb": gpu.vram_total_mb} if gpu else {}
+        url = submit_results([asdict(r) for r in results], gpu_dict)
+        if url:
+            print(f"Done! {url}")
+        else:
+            print("Failed (set GITHUB_TOKEN env var)")
 
 
 if __name__ == "__main__":
