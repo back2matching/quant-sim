@@ -20,6 +20,8 @@ def main():
     parser.add_argument("--gpu", action="store_true", help="Show GPU info and exit")
     parser.add_argument("--list", action="store_true", help="List local models")
     parser.add_argument("--tags", help="Comma-separated quant tags to test (instead of auto-discovery)")
+    parser.add_argument("--no-pull", action="store_true", help="Only test locally available models (don't download)")
+    parser.add_argument("--local", action="store_true", help="Benchmark all locally installed models")
     args = parser.parse_args()
 
     # GPU info
@@ -49,17 +51,21 @@ def main():
             print("No models found.")
         return
 
-    # Need a model
-    if not args.model:
-        print("Usage: quant-sim <model>")
-        print("Example: quant-sim qwen2.5:7b")
-        print("         quant-sim llama3.1:8b --quick")
-        sys.exit(1)
-
     gpu = detect_gpu()
 
-    # Discover quant tags
-    if args.tags:
+    # --local mode: benchmark all locally installed models
+    if args.local:
+        models = list_local_models()
+        tags = [m["name"] for m in models]
+        args.model = "all local models"
+        args.no_pull = True
+    elif not args.model:
+        print("Usage: quant-sim <model>")
+        print("       quant-sim qwen2.5:7b")
+        print("       quant-sim --local          (benchmark all installed models)")
+        print("       quant-sim --local --quick   (fast comparison of all models)")
+        sys.exit(1)
+    elif args.tags:
         tags = args.tags.split(",")
     else:
         tags = discover_quant_tags(args.model)
@@ -81,14 +87,17 @@ def main():
     for i, tag in enumerate(tags):
         print(f"[{i+1}/{len(tags)}] {tag}...", end=" ", flush=True)
 
-        # Check if model is available locally, pull if not
+        # Check if model is available locally
         local_models = [m["name"] for m in list_local_models()]
         tag_found = any(tag == m or tag + ":latest" == m or m.startswith(tag + ":") for m in local_models)
         if not tag_found:
+            if getattr(args, 'no_pull', False):
+                print("SKIP (not local, --no-pull)")
+                continue
             print("pulling...", end=" ", flush=True)
             success = pull_model(tag)
             if not success:
-                print("SKIP (pull failed)")
+                print("SKIP (not available)")
                 continue
 
         result = benchmark_one_quant(
