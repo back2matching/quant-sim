@@ -132,11 +132,14 @@ def recommend(results: list[QuantResult]) -> Optional[QuantResult]:
         # All below 80% -- pick highest quality, break ties by speed
         best = max(valid, key=lambda r: (r.quality_score, r.eval_rate))
 
-    best.is_recommended = True
     return best
 
 
 def format_table(results: list[QuantResult], gpu: Optional[GpuInfo]) -> str:
+    # Find recommendation first (don't mutate results)
+    rec = recommend(results)
+    if rec:
+        rec.is_recommended = True
     lines = []
     if gpu:
         lines.append(f"GPU: {gpu.name} ({gpu.vram_total_mb} MB VRAM, {gpu.vram_free_mb} MB free)")
@@ -163,7 +166,6 @@ def format_table(results: list[QuantResult], gpu: Optional[GpuInfo]) -> str:
                 f"{r.eval_rate:>8.1f}/s {r.quality_score:>7.0f}% {note}"
             )
 
-    rec = recommend(results)
     if rec:
         lines.append("")
         lines.append(f"Recommendation: Use {rec.quant_label} ({rec.model_tag}).")

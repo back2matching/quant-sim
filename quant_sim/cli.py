@@ -76,7 +76,8 @@ def main():
     if gpu:
         print(f"GPU: {gpu.name} ({gpu.vram_total_mb} MB VRAM)")
     print(f"Model: {args.model}")
-    print(f"Testing {len(tags)} quantization levels...")
+    label = "models" if getattr(args, 'local', False) else "quantization levels"
+    print(f"Testing {len(tags)} {label}...")
     print(f"Mode: {'quick' if args.quick else 'full'}")
     print(f"{'='*60}\n")
 

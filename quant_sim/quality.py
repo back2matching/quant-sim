@@ -38,8 +38,8 @@ QUALITY_TESTS = [
     QualityQuestion("reasoning", "If all roses are flowers and all flowers need water, do roses need water? Yes or no.", "contains:yes", 1.0),
     QualityQuestion("reasoning", "I have a brother. My brother has a brother. How many brothers minimum? Just the number.", "contains:1"),
     QualityQuestion("reasoning", "Which is heavier: a pound of feathers or a pound of steel? Answer: they weigh the same, or one is heavier.", "contains:same"),
-    QualityQuestion("reasoning", "If it takes 5 machines 5 minutes to make 5 widgets, how long for 100 machines to make 100 widgets? Just minutes.", "contains:5"),
-    QualityQuestion("reasoning", "A bat and ball cost $1.10 together. The bat costs $1 more than the ball. How much is the ball? Answer in cents.", "contains:5"),
+    QualityQuestion("reasoning", "If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets? Think carefully. Just the number of minutes.", "contains:5"),
+    QualityQuestion("reasoning", "A bat and ball cost $1.10 together. The bat costs $1 more than the ball. How much is the ball in cents? Just the number.", "contains:5"),
 ]
 
 
