@@ -3,7 +3,7 @@
 Which quantization should I use? One command tells you.
 
 ```bash
-pip install quant-sim
+pip install quantsim-bench
 quant-sim qwen2.5:7b
 ```
 
@@ -61,7 +61,7 @@ Q3_K_M        13.4G  15843M      2.1/s  (CPU offload)
 ## Install
 
 ```bash
-pip install quant-sim  # coming soon — for now: pip install -e . from source
+pip install quantsim-bench  # coming soon — for now: pip install -e . from source
 ```
 
 Requires: Ollama running locally, NVIDIA GPU.
