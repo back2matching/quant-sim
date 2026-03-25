@@ -47,3 +47,59 @@ class TestOllamaClient:
     def test_import(self):
         from quant_sim.ollama import check_ollama, list_local_models
         # Should not crash even without Ollama running
+
+
+class TestBenchModule:
+    def test_extract_quant(self):
+        from quant_sim.ollama import _extract_quant_from_name
+        assert _extract_quant_from_name("qwen2.5:7b-instruct-q4_k_m") == "Q4_K_M"
+        assert _extract_quant_from_name("qwen2.5:7b-instruct-q3_k_s") == "Q3_K_S"
+        assert _extract_quant_from_name("qwen2.5:7b-instruct-q8_0") == "Q8_0"
+        assert _extract_quant_from_name("qwen2.5:7b") == "default"
+        assert _extract_quant_from_name("model:fp16") == "FP16"
+
+    def test_recommend_picks_fastest_above_threshold(self):
+        from quant_sim.bench import recommend, QuantResult
+        results = [
+            QuantResult("a", "Q4", 4.0, 8000, 100, 50.0, 85, {}, True),
+            QuantResult("b", "Q5", 5.0, 9000, 90, 40.0, 90, {}, True),
+            QuantResult("c", "Q8", 7.0, 11000, 80, 30.0, 95, {}, True),
+        ]
+        rec = recommend(results)
+        assert rec.model_tag == "a"  # fastest with quality >= 80%
+
+    def test_recommend_picks_highest_quality_when_all_below(self):
+        from quant_sim.bench import recommend, QuantResult
+        results = [
+            QuantResult("a", "Q3", 3.0, 7000, 100, 60.0, 50, {}, True),
+            QuantResult("b", "Q4", 4.0, 8000, 90, 50.0, 70, {}, True),
+        ]
+        rec = recommend(results)
+        assert rec.model_tag == "b"  # highest quality
+
+    def test_recommend_skips_errors(self):
+        from quant_sim.bench import recommend, QuantResult
+        results = [
+            QuantResult("a", "Q4", 4.0, 0, 0, 0, 0, {}, True, error="Inference failed"),
+            QuantResult("b", "Q5", 5.0, 9000, 90, 40.0, 60, {}, True),
+        ]
+        rec = recommend(results)
+        assert rec.model_tag == "b"
+
+    def test_recommend_none_when_empty(self):
+        from quant_sim.bench import recommend
+        assert recommend([]) is None
+
+
+class TestOllamaModule:
+    def test_extract_quant_from_name(self):
+        from quant_sim.ollama import _extract_quant_from_name
+        assert _extract_quant_from_name("model:q4_k_m") == "Q4_K_M"
+        assert _extract_quant_from_name("model:q8_0") == "Q8_0"
+        assert _extract_quant_from_name("model:latest") == "default"
+
+    def test_discover_includes_base_model(self):
+        from quant_sim.ollama import discover_quant_tags
+        tags = discover_quant_tags("qwen2.5:7b")
+        assert "qwen2.5:7b" in tags
+        assert len(tags) > 1
