@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: quant-sim
+Version: 0.1.0
+Summary: Which quantization should I use? One command benchmarks every quant level on YOUR GPU.
+Author: back2matching
+License: Apache-2.0
+Project-URL: Homepage, https://github.com/back2matching/quant-sim
+Keywords: llm,quantization,benchmark,ollama,gpu,gguf,vram
+Classifier: Development Status :: 3 - Alpha
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: requests>=2.28.0
+Provides-Extra: charts
+Requires-Dist: matplotlib; extra == "charts"
