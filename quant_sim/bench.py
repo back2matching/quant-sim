@@ -168,7 +168,32 @@ def format_table(results: list[QuantResult], gpu: Optional[GpuInfo]) -> str:
 
     if rec:
         lines.append("")
-        lines.append(f"Recommendation: Use {rec.quant_label} ({rec.model_tag}).")
-        lines.append(f"  {rec.quality_score:.0f}% quality at {rec.eval_rate:.0f} tok/s, {rec.size_gb:.1f} GB.")
+        lines.append(f"Recommendation: {rec.quant_label} ({rec.model_tag})")
+        lines.append(f"  Speed:   {rec.eval_rate:.0f} tok/s")
+        if rec.quality_score > 0:
+            lines.append(f"  Quality: {rec.quality_score:.0f}%")
+        lines.append(f"  Size:    {rec.size_gb:.1f} GB")
+        lines.append(f"  VRAM:    {rec.vram_peak_mb} MB")
+
+        # Explain WHY this was picked
+        valid = [r for r in results if r.fits_in_vram and not r.error and r.eval_rate > 0]
+        if len(valid) > 1:
+            lines.append("")
+            lines.append("  Why this one?")
+            if rec.quality_score >= 80:
+                lines.append(f"    Quality >= 80% ({rec.quality_score:.0f}%), fastest in that group.")
+            else:
+                lines.append(f"    Highest quality available ({rec.quality_score:.0f}%).")
+
+            # Show runner-up
+            others = [r for r in valid if r.model_tag != rec.model_tag]
+            if others:
+                runner = max(others, key=lambda r: (r.quality_score, r.eval_rate))
+                lines.append(f"  Runner-up: {runner.quant_label} ({runner.model_tag})")
+                lines.append(f"    {runner.eval_rate:.0f} tok/s, {runner.quality_score:.0f}% quality, {runner.size_gb:.1f} GB")
+                if runner.eval_rate > rec.eval_rate:
+                    lines.append(f"    (faster but lower quality)")
+                elif runner.quality_score > rec.quality_score:
+                    lines.append(f"    (better quality but slower)")
 
     return "\n".join(lines)
